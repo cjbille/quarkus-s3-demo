@@ -36,7 +36,7 @@ public class UploadResource {
 
     @Path("s3")
     @POST
-    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Consumes(MediaType.WILDCARD)
     public Response uploadFile(InputStream body, @Context HttpHeaders httpHeaders) {
         var fileName = httpHeaders.getHeaderString("filename") != null
                 ? httpHeaders.getHeaderString("filename") + ".tar"
@@ -49,7 +49,7 @@ public class UploadResource {
         try {
             Log.infof("Received filename: %s", fileName);
             AsyncRequestBody asyncBody = AsyncRequestBody.fromInputStream(body, null, uploadExecutor.get());
-            s3Client.putObject(putObjectRequest, asyncBody).join();
+//            s3Client.putObject(putObjectRequest, asyncBody).joinn();
             return Response.accepted().build();
         } catch (CompletionException e) {
             Log.errorf("FAIL | fileName=%s | cause=%s", fileName, e.getCause());
