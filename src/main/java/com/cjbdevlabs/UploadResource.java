@@ -2,6 +2,7 @@ package com.cjbdevlabs;
 
 import io.quarkiverse.amazon.s3.runtime.S3Crt;
 import io.quarkus.logging.Log;
+import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -34,6 +35,11 @@ public class UploadResource {
     @ConfigProperty(name = "com.cjbdevlabs.s3.bucket")
     String s3bucket;
 
+    @PostConstruct
+    public void logAwsRetryConfig() {
+        Log.infof("aws.maxAttempts property = %s", System.getProperty("aws.maxAttempts"));
+    }
+
     @Path("s3")
     @POST
     @Consumes(MediaType.WILDCARD)
@@ -49,7 +55,7 @@ public class UploadResource {
         try {
             Log.infof("Received filename: %s", fileName);
             AsyncRequestBody asyncBody = AsyncRequestBody.fromInputStream(body, null, uploadExecutor.get());
-//            s3Client.putObject(putObjectRequest, asyncBody).joinn();
+            s3Client.putObject(putObjectRequest, asyncBody).join();
             return Response.accepted().build();
         } catch (CompletionException e) {
             Log.errorf("FAIL | fileName=%s | cause=%s", fileName, e.getCause());

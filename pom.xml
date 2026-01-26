@@ -81,6 +81,11 @@
                 <artifactId>quarkus-maven-plugin</artifactId>
                 <version>${quarkus.platform.version}</version>
                 <extensions>true</extensions>
+                <configuration>
+                    <systemProperties>
+                        <aws.maxAttempts>1</aws.maxAttempts>
+                    </systemProperties>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
