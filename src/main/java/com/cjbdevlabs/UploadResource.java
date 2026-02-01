@@ -42,9 +42,8 @@ public class UploadResource {
     @POST
     @Consumes(MediaType.WILDCARD)
     public Response uploadFile(InputStream inputStream, @Context HttpHeaders httpHeaders) {
-        var fileName = httpHeaders.getHeaderString("filename") != null
-                ? httpHeaders.getHeaderString("filename") + ".tar"
-                : UUID.randomUUID() + ".tar";
+        var fileNameHeader = httpHeaders.getHeaderString("filename");
+        var fileName = UploadUtils.buildFileName(fileNameHeader);
         try {
             Log.infof("Received filename: %s", fileName);
             AsyncRequestBody body = AsyncRequestBody.fromInputStream(inputStream, null, executor);
@@ -52,14 +51,12 @@ public class UploadResource {
                     .putObjectRequest(req -> req.bucket(s3bucket).key(fileName).contentType(APPLICATION_TAR))
                     .requestBody(body)
                     .build();
-            Upload upload = s3TransferManager.upload(uploadRequest);
-            upload.completionFuture().join();
+            Log.infof("Upload Request: %s", uploadRequest.toString());
+            s3TransferManager.upload(uploadRequest).completionFuture().join();
             return Response.accepted().build();
-        } catch (CompletionException e) {
-            Log.errorf("FAIL | fileName=%s | cause=%s", fileName, e.getCause());
-            return Response.serverError().build();
         } catch (Exception e) {
-            Log.errorf("FAIL | fileName=%s | exception=%s | message=%s", fileName, e.getClass().getSimpleName(), e.getMessage());
+            var err = e instanceof CompletionException ? e.getCause() : e;
+            Log.errorf("FAIL | fileName=%s | exception=%s | message=%s", fileName, err.getClass().getSimpleName(), err.getMessage());
             return Response.serverError().build();
         }
     }
