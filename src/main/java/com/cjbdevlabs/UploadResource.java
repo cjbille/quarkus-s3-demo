@@ -2,6 +2,7 @@ package com.cjbdevlabs;
 
 import io.quarkiverse.amazon.s3.runtime.S3Crt;
 import io.quarkus.logging.Log;
+import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.annotation.PreDestroy;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -39,6 +40,7 @@ public class UploadResource {
     @Path("s3")
     @POST
     @Consumes(MediaType.WILDCARD)
+    @RunOnVirtualThread
     public Response uploadFile(InputStream inputStream, @Context HttpHeaders httpHeaders) {
         var fileNameHeader = httpHeaders.getHeaderString("filename");
         var fileName = UploadUtils.buildFileName(fileNameHeader);
